@@ -46,9 +46,11 @@ const LoginPage = ({ onValidated }) => {
           key={showMday ? "mday" : "bingo"}
           src={showMday ? mdaySplash : bingoImage}
           alt="Splash Screen"
-          className={`w-auto h-auto ${
-            showMday ? "animate-fadeInOutXL" : "animate-fadeInOut"
-          }`}
+          className={`${
+            showMday
+              ? "w-[60%] h-[60%]" // 👈 smaller mday splash
+              : "w-auto h-auto"
+          } ${showMday ? "animate-fadeInOutXL" : "animate-fadeInOut"}`}
         />
       </div>
     );
