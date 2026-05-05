@@ -3,18 +3,56 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { SERVER_URL } from "../lib/constants";
 import bingoImage from "../../assets/bingo-splash.png"; // ✅ Save the image locally or import from a URL
+import mdayBanner from "../../assets/mother's_day_banner.png";
+import mdaySplash from "../../assets/mother's_day_splash.png";
 
 const LoginPage = ({ onValidated }) => {
   const [employeeId, setEmployeeId] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true); // 🔄 Splash loading
 
+  // inside your component
+  const [showMday, setShowMday] = useState(false);
+
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     setIsLoading(false);
+  //   }, 3000); // 3 seconds
+  //   return () => clearTimeout(timeout);
+  // }, []);
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    // show Mother's Day splash after 3s
+    const switchTimer = setTimeout(() => {
+      setShowMday(true);
+    }, 3000);
+
+    // end splash after 3s + 7s = 10s
+    const endTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 3000); // 3 seconds
-    return () => clearTimeout(timeout);
+    }, 10000);
+
+    return () => {
+      clearTimeout(switchTimer);
+      clearTimeout(endTimer);
+    };
   }, []);
+
+  // 🔄 Splash screen
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <img
+          key={showMday ? "mday" : "bingo"}
+          src={showMday ? mdaySplash : bingoImage}
+          alt="Splash Screen"
+          className={`w-auto h-auto ${
+            showMday ? "animate-fadeInOutXL" : "animate-fadeInOut"
+          }`}
+        />
+      </div>
+    );
+  }
 
   const handleValidate = async () => {
     setError("");
@@ -34,7 +72,7 @@ const LoginPage = ({ onValidated }) => {
 
       // ✅ Check if already won
       const winCheck = await axios.get(
-        `${SERVER_URL}/api/hasWon/${employeeId}`
+        `${SERVER_URL}/api/hasWon/${employeeId}`,
       );
 
       if (winCheck.data.hasWon && employeeId !== "CMXBINGOADMIN") {
@@ -54,7 +92,7 @@ const LoginPage = ({ onValidated }) => {
 
       // ✅ Validate user
       const res = await axios.get(
-        `${SERVER_URL}/api/validateEmail/${employeeId}`
+        `${SERVER_URL}/api/validateEmail/${employeeId}`,
       );
       if (res.data.exists) {
         onValidated(res.data.employee);
@@ -67,19 +105,6 @@ const LoginPage = ({ onValidated }) => {
     }
   };
 
-  // 🔄 Splash screen
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <img
-          src={bingoImage}
-          alt="Callmax Bingo Game"
-          className="w-auto h-auto animate-fadeInOut"
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-custom-gradient2 flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white text-black p-6 rounded-lg shadow-lg">
@@ -89,6 +114,13 @@ const LoginPage = ({ onValidated }) => {
             🎉 Welcome to Callmax Solutions' Bingo Day 🎉
           </h1>
         </div>
+
+        {/* ✅ Mother's Day Banner */}
+        <img
+          src={mdayBanner}
+          alt="Mother's Day Banner"
+          className="w-full mb-4 rounded-md"
+        />
 
         <p className="text-left mb-4">Enter your Employee ID:</p>
 
