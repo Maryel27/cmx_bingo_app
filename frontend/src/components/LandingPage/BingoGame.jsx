@@ -14,7 +14,8 @@ const BingoGame = ({ employee }) => {
   const [savedPattern, setSavedPattern] = useState("");
   const [winningCells, setWinningCells] = useState([]);
   const [socket, setSocket] = useState(null);
-  const [winnerId, setWinnerId] = useState(null);
+  // const [winnerId, setWinnerId] = useState(null);
+  const [showNoBallsModal, setShowNoBallsModal] = useState(false);
 
   //Connects to the backend WebSocket server on mount.
   useEffect(() => {
@@ -37,7 +38,7 @@ const BingoGame = ({ employee }) => {
       //Sets the newest currentBall
       setCurrentBall(numbers[numbers.length - 1] || null);
       //Calls checkWin() to see if the user wins.
-      checkWin(numbers); // ✅ await now valid
+      // checkWin(numbers); // ✅ await now valid
     });
 
     // ✅ NEW: Listen for pattern update
@@ -47,15 +48,15 @@ const BingoGame = ({ employee }) => {
       setGamePattern(pattern); // sync dropdown
     });
 
-    socket.on("game-winner", (winner) => {
-      console.log("🎉 Winner declared:", winner);
-      setWinnerId(winner);
-    });
+    // socket.on("game-winner", (winner) => {
+    //   console.log("🎉 Winner declared:", winner);
+    //   setWinnerId(winner);
+    // });
 
     return () => {
       socket.off("update-called-numbers");
       socket.off("update-pattern"); // clean up
-      socket.off("game-winner");
+      // socket.off("game-winner");
     };
   }, [socket]);
 
@@ -65,31 +66,31 @@ const BingoGame = ({ employee }) => {
       setGamePattern(savedPattern);
       console.log(
         "🟢 Synced gamePattern dropdown to savedPattern:",
-        savedPattern
+        savedPattern,
       );
     }
   }, [savedPattern, employee]);
 
   // 🔁 Re-check win if pattern changes and numbers are already present
-  useEffect(() => {
-    if (calledNumbers.length > 0 && savedPattern) {
-      console.log("🔁 Re-checking win after pattern change...");
-      checkWin(calledNumbers);
-    }
-  }, [savedPattern]);
+  // useEffect(() => {
+  //   if (calledNumbers.length > 0 && savedPattern) {
+  //     console.log("🔁 Re-checking win after pattern change...");
+  //     checkWin(calledNumbers);
+  //   }
+  // }, [savedPattern]);
 
-  const fetchWinner = async () => {
-    try {
-      const res = await axios.get(`${SERVER_URL}/api/getWinner`);
-      if (res.data.winnerId) {
-        setWinnerId(res.data.winnerId);
-      }
-    } catch (e) {
-      console.error("❌ Failed to fetch winner:", e);
-    }
-  };
+  // const fetchWinner = async () => {
+  //   try {
+  //     const res = await axios.get(`${SERVER_URL}/api/getWinner`);
+  //     if (res.data.winnerId) {
+  //       setWinnerId(res.data.winnerId);
+  //     }
+  //   } catch (e) {
+  //     console.error("❌ Failed to fetch winner:", e);
+  //   }
+  // };
 
-  fetchWinner();
+  // fetchWinner();
 
   // 🧠 Seeded RNG for deterministic cards
   const mulberry32 = (a) => {
@@ -126,199 +127,199 @@ const BingoGame = ({ employee }) => {
   };
 
   // 🧩 Pattern Checker
-  const checkWin = (called) => {
-    if (hasWon || winnerId) return; // 🛑 Already won by anyone? Don’t check
+  // const checkWin = (called) => {
+  //   if (hasWon || winnerId) return; // 🛑 Already won by anyone? Don’t check
 
-    // ⛔ Prevent ADMIN from being marked as winner
-    if (employee?.EMPLOYEEID === "CMXBINGOADMIN") return;
+  //   // ⛔ Prevent ADMIN from being marked as winner
+  //   if (employee?.EMPLOYEEID === "CMXBINGOADMIN") return;
 
-    const letters = ["B", "I", "N", "G", "O"];
-    const isCalled = (letter, row) => {
-      const value = card[letter][row];
-      return value === "FREE" || called.includes(`${letter}${value}`);
-    };
+  //   const letters = ["B", "I", "N", "G", "O"];
+  //   const isCalled = (letter, row) => {
+  //     const value = card[letter][row];
+  //     return value === "FREE" || called.includes(`${letter}${value}`);
+  //   };
 
-    const winPatterns = {
-      "forward-slash": () => {
-        const cells1 = [];
-        const cells2 = [];
-        let forwardWin = true;
-        let backwardWin = true;
+  //   const winPatterns = {
+  //     "forward-slash": () => {
+  //       const cells1 = [];
+  //       const cells2 = [];
+  //       let forwardWin = true;
+  //       let backwardWin = true;
 
-        // Check forward slash (bottom-left to top-right)
-        for (let i = 0; i < 5; i++) {
-          const l = letters[i];
-          const r = 4 - i;
-          if (!isCalled(l, r)) forwardWin = false;
-          else cells1.push({ letter: l, row: r });
-        }
+  //       // Check forward slash (bottom-left to top-right)
+  //       for (let i = 0; i < 5; i++) {
+  //         const l = letters[i];
+  //         const r = 4 - i;
+  //         if (!isCalled(l, r)) forwardWin = false;
+  //         else cells1.push({ letter: l, row: r });
+  //       }
 
-        // Check backslash (top-left to bottom-right)
-        for (let i = 0; i < 5; i++) {
-          const l = letters[i];
-          const r = i;
-          if (!isCalled(l, r)) backwardWin = false;
-          else cells2.push({ letter: l, row: r });
-        }
+  //       // Check backslash (top-left to bottom-right)
+  //       for (let i = 0; i < 5; i++) {
+  //         const l = letters[i];
+  //         const r = i;
+  //         if (!isCalled(l, r)) backwardWin = false;
+  //         else cells2.push({ letter: l, row: r });
+  //       }
 
-        if (forwardWin) {
-          setWinningCells(cells1);
-          return true;
-        } else if (backwardWin) {
-          setWinningCells(cells2);
-          return true;
-        }
+  //       if (forwardWin) {
+  //         setWinningCells(cells1);
+  //         return true;
+  //       } else if (backwardWin) {
+  //         setWinningCells(cells2);
+  //         return true;
+  //       }
 
-        return false;
-      },
+  //       return false;
+  //     },
 
-      "tic-tac-toe": () => {
-        const cells = [
-          { letter: "B", row: 0 },
-          { letter: "N", row: 0 },
-          { letter: "O", row: 0 },
-          { letter: "B", row: 2 },
-          { letter: "O", row: 2 },
-          { letter: "B", row: 4 },
-          { letter: "N", row: 4 },
-          { letter: "O", row: 4 },
-        ];
+  //     "tic-tac-toe": () => {
+  //       const cells = [
+  //         { letter: "B", row: 0 },
+  //         { letter: "N", row: 0 },
+  //         { letter: "O", row: 0 },
+  //         { letter: "B", row: 2 },
+  //         { letter: "O", row: 2 },
+  //         { letter: "B", row: 4 },
+  //         { letter: "N", row: 4 },
+  //         { letter: "O", row: 4 },
+  //       ];
 
-        const isPatternComplete = cells.every(({ letter, row }) =>
-          isCalled(letter, row)
-        );
+  //       const isPatternComplete = cells.every(({ letter, row }) =>
+  //         isCalled(letter, row),
+  //       );
 
-        if (isPatternComplete) {
-          setWinningCells(cells);
-          return true;
-        }
+  //       if (isPatternComplete) {
+  //         setWinningCells(cells);
+  //         return true;
+  //       }
 
-        return false;
-      },
+  //       return false;
+  //     },
 
-      plus: () => {
-        const cells = [];
-        const rowIndex = 2;
-        const colIndex = 2;
-        const rowFilled = letters.every((l) => {
-          const valid = isCalled(l, rowIndex);
-          if (valid) cells.push({ letter: l, row: rowIndex });
-          return valid;
-        });
-        const colFilled = [0, 1, 2, 3, 4].every((r) => {
-          const l = letters[colIndex];
-          const valid = isCalled(l, r);
-          if (valid) cells.push({ letter: l, row: r });
-          return valid;
-        });
-        if (rowFilled && colFilled) {
-          setWinningCells(cells);
-          return true;
-        }
-        return false;
-      },
-      corners: () => {
-        const corners = [
-          { letter: "B", row: 0 },
-          { letter: "O", row: 0 },
-          { letter: "B", row: 4 },
-          { letter: "O", row: 4 },
-        ];
-        const valid = corners.every(({ letter, row }) => isCalled(letter, row));
-        if (valid) {
-          setWinningCells(corners); // ✅ This is missing!
-          return true;
-        }
-        return false;
-      },
+  //     plus: () => {
+  //       const cells = [];
+  //       const rowIndex = 2;
+  //       const colIndex = 2;
+  //       const rowFilled = letters.every((l) => {
+  //         const valid = isCalled(l, rowIndex);
+  //         if (valid) cells.push({ letter: l, row: rowIndex });
+  //         return valid;
+  //       });
+  //       const colFilled = [0, 1, 2, 3, 4].every((r) => {
+  //         const l = letters[colIndex];
+  //         const valid = isCalled(l, r);
+  //         if (valid) cells.push({ letter: l, row: r });
+  //         return valid;
+  //       });
+  //       if (rowFilled && colFilled) {
+  //         setWinningCells(cells);
+  //         return true;
+  //       }
+  //       return false;
+  //     },
+  //     corners: () => {
+  //       const corners = [
+  //         { letter: "B", row: 0 },
+  //         { letter: "O", row: 0 },
+  //         { letter: "B", row: 4 },
+  //         { letter: "O", row: 4 },
+  //       ];
+  //       const valid = corners.every(({ letter, row }) => isCalled(letter, row));
+  //       if (valid) {
+  //         setWinningCells(corners); // ✅ This is missing!
+  //         return true;
+  //       }
+  //       return false;
+  //     },
 
-      "letter-h": () => {
-        const cells = [];
-        const left = [0, 1, 2, 3, 4].every((r) => {
-          const valid = isCalled("B", r);
-          if (valid) cells.push({ letter: "B", row: r });
-          return valid;
-        });
-        const right = [0, 1, 2, 3, 4].every((r) => {
-          const valid = isCalled("O", r);
-          if (valid) cells.push({ letter: "O", row: r });
-          return valid;
-        });
-        const middle = letters.every((l) => {
-          const valid = isCalled(l, 2);
-          if (valid) cells.push({ letter: l, row: 2 });
-          return valid;
-        });
-        if (left && right && middle) {
-          setWinningCells(cells);
-          return true;
-        }
-        return false;
-      },
-      blackout: () => {
-        const cells = [];
-        const all = letters.every((l) =>
-          [0, 1, 2, 3, 4].every((r) => {
-            const valid = isCalled(l, r);
-            if (valid) cells.push({ letter: l, row: r });
-            return valid;
-          })
-        );
-        if (all) {
-          setWinningCells(cells);
-          return true;
-        }
-        return false;
-      },
-    };
+  //     "letter-h": () => {
+  //       const cells = [];
+  //       const left = [0, 1, 2, 3, 4].every((r) => {
+  //         const valid = isCalled("B", r);
+  //         if (valid) cells.push({ letter: "B", row: r });
+  //         return valid;
+  //       });
+  //       const right = [0, 1, 2, 3, 4].every((r) => {
+  //         const valid = isCalled("O", r);
+  //         if (valid) cells.push({ letter: "O", row: r });
+  //         return valid;
+  //       });
+  //       const middle = letters.every((l) => {
+  //         const valid = isCalled(l, 2);
+  //         if (valid) cells.push({ letter: l, row: 2 });
+  //         return valid;
+  //       });
+  //       if (left && right && middle) {
+  //         setWinningCells(cells);
+  //         return true;
+  //       }
+  //       return false;
+  //     },
+  //     blackout: () => {
+  //       const cells = [];
+  //       const all = letters.every((l) =>
+  //         [0, 1, 2, 3, 4].every((r) => {
+  //           const valid = isCalled(l, r);
+  //           if (valid) cells.push({ letter: l, row: r });
+  //           return valid;
+  //         }),
+  //       );
+  //       if (all) {
+  //         setWinningCells(cells);
+  //         return true;
+  //       }
+  //       return false;
+  //     },
+  //   };
 
-    if (winPatterns[savedPattern] && winPatterns[savedPattern]()) {
-      setHasWon(true);
-      try {
-        axios.post(`${SERVER_URL}/api/setWinner`, {
-          winnerId: employee.EMPLOYEEID,
-          pattern: savedPattern,
-        });
-      } catch (e) {
-        console.error("❌ Failed to set winner:", e);
-      }
-    }
-  };
+  //   if (winPatterns[savedPattern] && winPatterns[savedPattern]()) {
+  //     setHasWon(true);
+  //     try {
+  //       axios.post(`${SERVER_URL}/api/setWinner`, {
+  //         winnerId: employee.EMPLOYEEID,
+  //         pattern: savedPattern,
+  //       });
+  //     } catch (e) {
+  //       console.error("❌ Failed to set winner:", e);
+  //     }
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchWinner();
-  }, []);
+  // useEffect(() => {
+  //   fetchWinner();
+  // }, []);
 
-  useEffect(() => {
-    const checkWinner = async () => {
-      try {
-        const res = await axios.get(`${SERVER_URL}/api/getWinner`);
-        const currentWinnerId = res.data?.winnerId;
-        setWinnerId(currentWinnerId);
+  // useEffect(() => {
+  //   const checkWinner = async () => {
+  //     try {
+  //       const res = await axios.get(`${SERVER_URL}/api/getWinner`);
+  //       const currentWinnerId = res.data?.winnerId;
+  //       setWinnerId(currentWinnerId);
 
-        if (
-          currentWinnerId &&
-          employee?.EMPLOYEEID &&
-          employee.EMPLOYEEID === currentWinnerId &&
-          employee.EMPLOYEEID !== "CMXBINGOADMIN"
-        ) {
-          setHasWon(true); // Triggers the win modal immediately
-        }
-      } catch (e) {
-        console.error("❌ Failed to fetch winner:", e);
-      }
-    };
+  //       if (
+  //         currentWinnerId &&
+  //         employee?.EMPLOYEEID &&
+  //         employee.EMPLOYEEID === currentWinnerId &&
+  //         employee.EMPLOYEEID !== "CMXBINGOADMIN"
+  //       ) {
+  //         setHasWon(true); // Triggers the win modal immediately
+  //       }
+  //     } catch (e) {
+  //       console.error("❌ Failed to fetch winner:", e);
+  //     }
+  //   };
 
-    checkWinner();
-  }, [employee]);
+  //   checkWinner();
+  // }, [employee]);
 
   // 🧠 Re-check win when card is ready
-  useEffect(() => {
-    if (card && calledNumbers.length > 0 && savedPattern) {
-      console.log("🔁 Rechecking win after card generation...");
-      checkWin(calledNumbers);
-    }
-  }, [card, calledNumbers, savedPattern]);
+  // useEffect(() => {
+  //   if (card && calledNumbers.length > 0 && savedPattern) {
+  //     console.log("🔁 Rechecking win after card generation...");
+  //     checkWin(calledNumbers);
+  //   }
+  // }, [card, calledNumbers, savedPattern]);
 
   // 🔁 Ball Drawer
   const getNewBall = (called) => {
@@ -335,14 +336,22 @@ const BingoGame = ({ employee }) => {
 
   //triggers this when clicking “Draw Random Ball”.
   const drawRandomBall = async () => {
-    if (hasWon || winnerId) return; // ⛔ Prevent drawing if already won or there's a winner
+    // if (hasWon || winnerId) return; // ⛔ Prevent drawing if already won or there's a winner
     if (!savedPattern) {
       alert("Please set a winning pattern before drawing a ball.");
       return;
     }
 
     const newBall = getNewBall(calledNumbers);
-    if (!newBall) return;
+    console.log("Called:", calledNumbers.length);
+    console.log("New Ball:", newBall);
+    console.log("Called Numbers:", calledNumbers);
+
+    if (!newBall) {
+      console.log("❌ No more balls available.");
+      setShowNoBallsModal(true);
+      return;
+    }
 
     try {
       // 🟢 Admin sends new ball to backend
@@ -355,7 +364,7 @@ const BingoGame = ({ employee }) => {
   };
 
   const drawBallByLetter = (letter) => {
-    if (hasWon || winnerId) return; // ⛔ Prevent drawing if already won or there's a winner
+    // if (hasWon || winnerId) return; // ⛔ Prevent drawing if already won or there's a winner
     const ranges = {
       B: [1, 15],
       I: [16, 30],
@@ -375,7 +384,7 @@ const BingoGame = ({ employee }) => {
     const randomBall = options[Math.floor(Math.random() * options.length)];
     setCalledNumbers((prev) => {
       const updated = [...prev, randomBall];
-      checkWin(updated);
+      // checkWin(updated);
       return updated;
     });
     setCurrentBall(randomBall);
@@ -419,7 +428,7 @@ const BingoGame = ({ employee }) => {
 
   const getPatternGuide = (pattern) => {
     const grid = Array.from({ length: 5 }, () =>
-      Array.from({ length: 5 }, () => false)
+      Array.from({ length: 5 }, () => false),
     );
 
     switch (pattern) {
@@ -484,13 +493,6 @@ const BingoGame = ({ employee }) => {
     return grid;
   };
 
-  // Show "we have a winner" modal to non-admins who did NOT win
-  const showWinnerModal =
-    !!winnerId &&
-    employee.EMPLOYEEID !== "CMXBINGOADMIN" &&
-    employee.EMPLOYEEID !== winnerId &&
-    !hasWon;
-
   // ✅ Render JSX
   return (
     <div className="min-h-screen bg-custom-gradient2 text-white flex flex-col items-center justify-center p-6">
@@ -516,7 +518,7 @@ const BingoGame = ({ employee }) => {
               </p>
               <div
                 className={`relative w-32 h-32 rounded-full flex items-center justify-center ${getBallColor(
-                  currentBall[0]
+                  currentBall[0],
                 )}`}
               >
                 <div className="absolute w-24 h-24 rounded-full border-4 border-white flex flex-col items-center justify-center text-white font-bold">
@@ -529,7 +531,7 @@ const BingoGame = ({ employee }) => {
         )}
 
         {/* BINGO CARD (Only for non-admin players) */}
-        {employee.EMPLOYEEID !== "CMXBINGOADMIN" && !hasWon && (
+        {employee.EMPLOYEEID !== "CMXBINGOADMIN" && (
           <table className="table-auto border-collapse mx-auto text-black bg-white rounded-lg overflow-hidden shadow-md">
             <thead>
               <tr>
@@ -576,22 +578,25 @@ const BingoGame = ({ employee }) => {
             {/* Draw Ball Button */}
             <div className="mb-6 flex justify-center">
               <button
-                onClick={drawRandomBall}
+                onClick={() => {
+                  console.log("🟢 BUTTON PRESSED");
+                  drawRandomBall();
+                }}
                 className="bg-blue-600 text-white text-xl px-10 py-5 rounded-lg hover:bg-blue-500 font-bold shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={!!winnerId || !savedPattern}
+                disabled={!savedPattern}
               >
                 🔵 Draw Bingo Ball
               </button>
             </div>
 
             {/* Winner Already Declared Warning */}
-            {winnerId && (
+            {/* {winnerId && (
               <div className="mb-6 p-4 rounded bg-red-100 text-red-800 border border-red-400 text-sm">
                 🎉 A winner has already been declared:{" "}
                 <strong>{winnerId}</strong>.<br />
                 You must reset the game before drawing more balls.
               </div>
-            )}
+            )} */}
 
             {/* Current Pattern Info */}
             <div className="mb-6 bg-white text-black px-4 py-3 rounded shadow-sm text-center">
@@ -655,7 +660,7 @@ const BingoGame = ({ employee }) => {
           </div>
         )}
 
-        {employee.EMPLOYEEID !== "CMXBINGOADMIN" && savedPattern && !hasWon && (
+        {employee.EMPLOYEEID !== "CMXBINGOADMIN" && savedPattern && (
           <div className="mt-6 bg-white text-black px-6 py-4 rounded shadow-md flex flex-col items-center">
             <p className="text-lg font-bold mb-2 text-center">
               🎯 Current Winning Pattern
@@ -688,106 +693,49 @@ const BingoGame = ({ employee }) => {
           </div>
         )}
 
-        {/* WIN MODAL */}
-        {hasWon && (
+        {showNoBallsModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white text-black rounded-lg p-6 max-w-md text-center shadow-xl">
-              <h2 className="text-2xl font-bold mb-2 text-green-600">
-                🎉 BINGO! 🎉
+            <div className="bg-white text-black rounded-lg p-6 max-w-md mx-4 text-center shadow-xl">
+              <h2 className="text-2xl font-bold text-red-600 mb-3">
+                🚫 No Balls Available
               </h2>
-              <p className="mb-4">
-                You have won this round with pattern:{" "}
-                <strong className="capitalize">
-                  {savedPattern.replace("-", " ")}
-                </strong>
+
+              <p className="mb-6">
+                All Bingo balls have already been drawn.
+                <br />
+                Kindly reset the game to start a new round.
               </p>
-              <table className="table-auto border-collapse mx-auto text-black bg-white rounded-lg overflow-hidden shadow-md mb-4">
-                <thead>
-                  <tr>
-                    {["B", "I", "N", "G", "O"].map((letter) => (
-                      <th
-                        key={letter}
-                        className="px-3 py-1 bg-yellow-300 text-lg"
-                      >
-                        {letter}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...Array(5)].map((_, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {["B", "I", "N", "G", "O"].map((letter) => {
-                        const num = card[letter][rowIndex];
-                        const isCalled = calledNumbers.includes(
-                          `${letter}${num}`
-                        );
-                        const isFree = num === "FREE";
-                        const isWinningCell = winningCells.some(
-                          (cell) =>
-                            cell.letter === letter && cell.row === rowIndex
-                        );
-                        const baseClass =
-                          "w-12 h-12 text-center align-middle font-bold border";
-                        const bgColor = isWinningCell
-                          ? "bg-green-400 text-black"
-                          : isFree || isCalled
-                          ? "bg-yellow-400 text-black line-through"
-                          : "bg-white";
-                        return (
-                          <td
-                            key={`${letter}-${rowIndex}`}
-                            className={`${baseClass} ${bgColor}`}
-                          >
-                            {num}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {/* Only show Play Again button to Admin */}
-              {employee.EMPLOYEEID === "CMXBINGOADMIN" ? (
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
-                  onClick={async () => {
-                    try {
-                      await axios.post(`${SERVER_URL}/api/resetGame`);
-                      window.location.reload(); // Admin resets game
-                    } catch (err) {
-                      console.error("❌ Failed to reset game:", err);
-                    }
-                  }}
-                >
-                  Play Again
-                </button>
-              ) : (
-                <p className="text-sm text-gray-700">
-                  Please wait for the admin to start a new game.
-                </p>
-              )}
+
+              <button
+                onClick={() => setShowNoBallsModal(false)}
+                className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-500"
+              >
+                OK
+              </button>
             </div>
           </div>
         )}
 
-        {/* GLOBAL WINNER MODAL (for other players) */}
-        {showWinnerModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white text-black rounded-lg p-4 mx-4 max-w-md text-center shadow-xl">
-              <h2 className="text-2xl font-bold mb-2 text-blue-700">
-                🏁 We have a winner!
-              </h2>
-              <p className="mb-2 text-m font-semibold">
-                A player has already won this round.
-              </p>
-              <p className="mb-4 text-sm text-gray-600">
-                Please wait for the admin to reset the game to proceed to the
-                next pattern. Hang tight—get ready to join the next round! 🚀
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Only show Play Again button to Admin */}
+        {/* {employee.EMPLOYEEID === "CMXBINGOADMIN" ? (
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500"
+            onClick={async () => {
+              try {
+                await axios.post(`${SERVER_URL}/api/resetGame`);
+                window.location.reload(); // Admin resets game
+              } catch (err) {
+                console.error("❌ Failed to reset game:", err);
+              }
+            }}
+          >
+            Play Again
+          </button>
+        ) : (
+          <p className="text-sm text-gray-700">
+            Please wait for the admin to start a new game.
+          </p>
+        )} */}
       </div>
     </div>
   );

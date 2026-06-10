@@ -5,6 +5,8 @@ import { SERVER_URL } from "../lib/constants";
 import bingoImage from "../../assets/bingo-splash.png"; // ✅ Save the image locally or import from a URL
 import mdayBanner from "../../assets/mother's_day_banner.png";
 import mdaySplash from "../../assets/mother's_day_splash.png";
+import fdayBanner from "../../assets/father's_day_banner.png";
+import fdaySplash from "../../assets/father's_day_splash.png";
 
 const LoginPage = ({ onValidated }) => {
   const [employeeId, setEmployeeId] = useState("");
@@ -22,7 +24,7 @@ const LoginPage = ({ onValidated }) => {
   // }, []);
 
   useEffect(() => {
-    // show Mother's Day splash after 3s
+    // show Father's Day splash after 3s
     const switchTimer = setTimeout(() => {
       setShowMday(true);
     }, 3000);
@@ -44,11 +46,11 @@ const LoginPage = ({ onValidated }) => {
       <div className="min-h-screen flex items-center justify-center bg-white">
         <img
           key={showMday ? "mday" : "bingo"}
-          src={showMday ? mdaySplash : bingoImage}
+          src={showMday ? fdaySplash : bingoImage}
           alt="Splash Screen"
           className={`${
             showMday
-              ? "w-[60%] h-[60%]" // 👈 smaller mday splash
+              ? "w-[70%] h-[70%]" // 👈 smaller mday splash
               : "w-auto h-auto"
           } ${showMday ? "animate-fadeInOutXL" : "animate-fadeInOut"}`}
         />
@@ -73,14 +75,14 @@ const LoginPage = ({ onValidated }) => {
       }
 
       // ✅ Check if already won
-      const winCheck = await axios.get(
-        `${SERVER_URL}/api/hasWon/${employeeId}`,
-      );
+      // const winCheck = await axios.get(
+      //   `${SERVER_URL}/api/hasWon/${employeeId}`,
+      // );
 
-      if (winCheck.data.hasWon && employeeId !== "CMXBINGOADMIN") {
-        setError("You have already won this game.");
-        return;
-      }
+      // if (winCheck.data.hasWon && employeeId !== "CMXBINGOADMIN") {
+      //   setError("You have already won this game.");
+      //   return;
+      // }
 
       // ✅ Admin shortcut
       if (employeeId === "CMXBINGOADMIN") {
@@ -119,8 +121,8 @@ const LoginPage = ({ onValidated }) => {
 
         {/* ✅ Mother's Day Banner */}
         <img
-          src={mdayBanner}
-          alt="Mother's Day Banner"
+          src={fdayBanner}
+          alt="Father's Day Banner"
           className="w-full mb-4 rounded-md"
         />
 

@@ -31,7 +31,7 @@ app.use(cors());
 // array tracks all balls drawn.
 let GLOBAL_CALLED_NUMBERS = [];
 let GLOBAL_PATTERN = "";
-let GLOBAL_WINNER = null;
+// let GLOBAL_WINNER = null;
 
 // ✅ WebSocket Broadcast for pattern
 const broadcastPattern = () => {
@@ -69,11 +69,11 @@ app.post("/api/setPattern", (req, res) => {
 app.post("/api/calledNumbers", (req, res) => {
   const { ball } = req.body;
 
-  if (GLOBAL_WINNER) {
-    return res
-      .status(403)
-      .json({ message: "A winner has already been declared." });
-  }
+  // if (GLOBAL_WINNER) {
+  //   return res
+  //     .status(403)
+  //     .json({ message: "A winner has already been declared." });
+  // }
 
   //It's stored in GLOBAL_CALLED_NUMBERS.
   if (!ball || GLOBAL_CALLED_NUMBERS.includes(ball)) {
@@ -86,66 +86,66 @@ app.post("/api/calledNumbers", (req, res) => {
   res.json({ success: true });
 });
 
-app.get("/api/getWinner", (req, res) => {
-  res.json({ winnerId: GLOBAL_WINNER });
-});
+// app.get("/api/getWinner", (req, res) => {
+//   res.json({ winnerId: GLOBAL_WINNER });
+// });
 
-app.post("/api/setWinner", async (req, res) => {
-  const { winnerId, pattern } = req.body;
+// app.post("/api/setWinner", async (req, res) => {
+//   const { winnerId, pattern } = req.body;
 
-  if (GLOBAL_WINNER) {
-    return res.status(409).json({ message: "Winner already declared." });
-  }
+//   if (GLOBAL_WINNER) {
+//     return res.status(409).json({ message: "Winner already declared." });
+//   }
 
-  if (!winnerId || !pattern) {
-    return res.status(400).json({ message: "Missing winnerId or pattern." });
-  }
+//   if (!winnerId || !pattern) {
+//     return res.status(400).json({ message: "Missing winnerId or pattern." });
+//   }
 
-  try {
-    const query = `
-      INSERT INTO 9999_cmx_appdata_tempdata.bingo_winners (employee_id, pattern)
-      VALUES (?, ?)
-    `;
-    await db.execute(query, [winnerId, pattern]);
+//   try {
+//     const query = `
+//       INSERT INTO 9999_cmx_appdata_tempdata.bingo_winners (employee_id, pattern)
+//       VALUES (?, ?)
+//     `;
+//     await db.execute(query, [winnerId, pattern]);
 
-    GLOBAL_WINNER = winnerId;
-    io.emit("game-winner", winnerId);
-    console.log(`🎉 Winner is: ${winnerId}, Pattern: ${pattern}`);
+//     GLOBAL_WINNER = winnerId;
+//     io.emit("game-winner", winnerId);
+//     console.log(`🎉 Winner is: ${winnerId}, Pattern: ${pattern}`);
 
-    res.json({ success: true });
-  } catch (err) {
-    console.error("❌ Failed to save winner to DB:", err);
-    res.status(500).json({ message: "Database error." });
-  }
-});
+//     res.json({ success: true });
+//   } catch (err) {
+//     console.error("❌ Failed to save winner to DB:", err);
+//     res.status(500).json({ message: "Database error." });
+//   }
+// });
 
 // Check if an employee has already won
 // ✅ Check if the employee has already won
-app.get("/api/hasWon/:employeeId", async (req, res) => {
-  const { employeeId } = req.params;
+// app.get("/api/hasWon/:employeeId", async (req, res) => {
+//   const { employeeId } = req.params;
 
-  try {
-    const [rows] = await db.query(
-      "SELECT * FROM 9999_cmx_appdata_tempdata.bingo_winners WHERE employee_id = ? LIMIT 1",
-      [employeeId],
-    );
+//   try {
+//     const [rows] = await db.query(
+//       "SELECT * FROM 9999_cmx_appdata_tempdata.bingo_winners WHERE employee_id = ? LIMIT 1",
+//       [employeeId],
+//     );
 
-    if (rows.length > 0) {
-      return res.json({ hasWon: true });
-    } else {
-      return res.json({ hasWon: false });
-    }
-  } catch (err) {
-    console.error("Error checking winner status:", err.message);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
+//     if (rows.length > 0) {
+//       return res.json({ hasWon: true });
+//     } else {
+//       return res.json({ hasWon: false });
+//     }
+//   } catch (err) {
+//     console.error("Error checking winner status:", err.message);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 // ✅ API: Reset game (called numbers and pattern)
 app.post("/api/resetGame", async (req, res) => {
   GLOBAL_CALLED_NUMBERS = [];
   GLOBAL_PATTERN = "";
-  GLOBAL_WINNER = null; // 👈 reset winner in memory
+  // GLOBAL_WINNER = null; // 👈 reset winner in memory
 
   try {
     // 🔥 Clear winner from DB
@@ -154,7 +154,7 @@ app.post("/api/resetGame", async (req, res) => {
     // 🔊 Notify all clients about the reset
     io.emit("update-called-numbers", GLOBAL_CALLED_NUMBERS);
     io.emit("update-pattern", GLOBAL_PATTERN);
-    io.emit("game-winner", null); // broadcast winner reset too
+    // io.emit("game-winner", null); // broadcast winner reset too
 
     console.log("🔁 Game reset by admin + DB winner cleared.");
     res.json({ success: true });
@@ -175,9 +175,9 @@ io.on("connection", (socket) => {
   socket.emit("update-called-numbers", GLOBAL_CALLED_NUMBERS);
 
   // ✅ ALSO send the current winner, if any
-  if (GLOBAL_WINNER) {
-    socket.emit("game-winner", GLOBAL_WINNER);
-  }
+  // if (GLOBAL_WINNER) {
+  //   socket.emit("game-winner", GLOBAL_WINNER);
+  // }
 
   socket.on("disconnect", () => {
     console.log("👋 Client disconnected");
